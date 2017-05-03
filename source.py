@@ -45,7 +45,6 @@ def normalize (prob_array): #normalized an array of probability
     return result
 
 
-
 def alias_MCMC_lda (corpus, no_topic, no_interative = 25, traces = True, alpha = 1, beta = 1):
 	# default number of iterative is 25
 	if alpha < 1:
@@ -92,12 +91,12 @@ def alias_MCMC_lda (corpus, no_topic, no_interative = 25, traces = True, alpha =
                     topic_proposal_index = random.randint (0, len(text)-1)
                     topic_proposal = topic_matrix[i][topic_proposal_index] # propose a new topic
                     # let beta be 1 => prevent from having zero denominator
-                    mh_acceptance = min(1,float (word_topic_corpus[word][topic_proposal-1] + beta) 
+                    mh_acceptance = min(1, (float (word_topic_corpus[word][topic_proposal-1] + beta) 
                                         * (topic_in_corpus[current_topic-1] + beta)
-                                        /((word_topic_corpus[word][current_topic-1]+beta) * (topic_in_corpus[topic_proposal-1]+beta)))
+                                        /((word_topic_corpus[word][current_topic-1]+beta) * (topic_in_corpus[topic_proposal-1]+beta))))
                 else:
                     topic_proposal = SampleAlias(AliasTable, no_topic)
-                    mh_acceptance = min(1,float(topic_in_document[i][topic_proposal-1]+ alpha)/topic_in_document[i][current_topic-1]+ alpha)
+                    mh_acceptance = min(1, (float(topic_in_document[i][topic_proposal-1]+ alpha)/(topic_in_document[i][current_topic-1]+ alpha)))
                 
                 mh_sample = random.uniform(0,1)
                 if (mh_sample >= mh_acceptance): # then accept the proposal, otherwise, reject proposal
@@ -121,11 +120,40 @@ def alias_MCMC_lda (corpus, no_topic, no_interative = 25, traces = True, alpha =
             print (message)
                                       
     result_text = [normalize(text) for text in topic_in_document]
-    
+    summary = {"Number of Topic": no_topic, "Number of iteration": no_interative, 
+               "Numer of articles": len(corpus),"Number of unique words": len(unique_word)}
    
     result_topic = [word_dist_per_topic(word_topic_corpus, topic_in_corpus, topic_index) for topic_index in range(no_topic)]
-    result = [result_text, result_topic]
+    result = [summary, result_text, result_topic]
     
     return (result) 
 
+
+def plot_topic (LDA_object):
+    for i, topic in enumerate (LDA_object[2]):
+        words = topic.keys()
+        value = np.array(topic.values())*100
+        y_pos = np.arange(len(words))
+        
+        plt.barh(y_pos, value, align='center', alpha=0.5)
+        plt.yticks(y_pos, words)
+        plt.xlabel('percentage')
+        plt.ylabel('words')
+        plt.title("Top word's percentage in topic " + str(i + 1))
+
+        plt.show()
+
+def plot_article (LDA_object, article):
+    if (isinstance (article, int) and (article > 0)):
+        topic = [("topic " + str(i+1)) for i in range(len(LDA_object[1][article-1]))]
+        value = np.array(LDA_object[1][article-1]) *100
+        y_pos = np.arange(len(topic))
+        
+        plt.barh(y_pos, value, align='center', alpha=0.5)
+        plt.yticks(y_pos, topic)
+        plt.xlabel('percentage')
+        plt.ylabel('topic')
+        plt.title("Topic distribution in article " + str(article))
+
+        plt.show()
 
