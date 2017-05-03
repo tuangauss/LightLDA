@@ -46,13 +46,13 @@ def normalize (prob_array): #normalized an array of probability
 
 
 def alias_MCMC_lda (corpus, no_topic, no_interative = 25, traces = True, alpha = 1, beta = 1):
-	# default number of iterative is 25
-	if alpha < 1:
-		print ("Please initialize alpha greater than or equal to 1")
-		break # break the loop if alpha < 1
-	if beta < 1:
-		print ("Please initialize beta greater than or equal to 1")
-		break # break the loop if beta is < 1
+    # default number of iterative is 25
+    if alpha < 1:
+        print ("Please initialize alpha greater than or equal to 1")
+        return 1 # break the loop if alpha < 1
+    if beta < 1:
+        print ("Please initialize beta greater than or equal to 1")
+        return 1 #break the loop if beta is < 1
     if traces:
         print ("Initializing data, please wait")
     flatten_data =  [item for f in range(len(corpus)) for item in corpus[f]] # flatten all articles in corpus into words
@@ -86,7 +86,7 @@ def alias_MCMC_lda (corpus, no_topic, no_interative = 25, traces = True, alpha =
                 
                 current_topic = topic_matrix[i][j] # current topic
                 coinflip = random.randint(0,1) # generate random integer between 0 or 1
-                
+                    
                 if coinflip == 0:
                     topic_proposal_index = random.randint (0, len(text)-1)
                     topic_proposal = topic_matrix[i][topic_proposal_index] # propose a new topic
@@ -99,19 +99,20 @@ def alias_MCMC_lda (corpus, no_topic, no_interative = 25, traces = True, alpha =
                     mh_acceptance = min(1, (float(topic_in_document[i][topic_proposal-1]+ alpha)/(topic_in_document[i][current_topic-1]+ alpha)))
                 
                 mh_sample = random.uniform(0,1)
-                if (mh_sample >= mh_acceptance): # then accept the proposal, otherwise, reject proposal
+                if (mh_sample < mh_acceptance): # then accept the proposal, otherwise, reject proposal
                     new_topic_index = topic_proposal - 1
                     
                     # decrement count of old matrices
-                    topic_in_document[i][current_topic-1] = topic_in_document[i][current_topic-1]-1
-                    topic_in_corpus[current_topic-1] = topic_in_corpus[current_topic-1]-1
-                    word_topic_corpus[word][current_topic-1] = word_topic_corpus[word][current_topic-1]-1
-
+                    topic_in_document[i][current_topic-1] -= 1
+                    topic_in_corpus[current_topic-1] -= 1
+                    word_topic_corpus[word][current_topic-1] -= 1
+                
                     # increment count of matrices, now that we have updated
-                    topic_matrix[i][j] = new_topic_index + 1
-                    topic_in_document[i][new_topic_index] = topic_in_document[i][new_topic_index] +1
-                    topic_in_corpus[new_topic_index] = topic_in_corpus[new_topic_index] +1
-                    word_topic_corpus[word][new_topic_index] = word_topic_corpus[word][new_topic_index] +1
+                    topic_matrix[i][j] = topic_proposal
+                    topic_in_document[i][new_topic_index] += 1
+                    topic_in_corpus[new_topic_index] += 1
+                    word_topic_corpus[word][new_topic_index] += 1
+
         if k == no_interative-1:
             message = statement[0] + str (no_interative) + " iterations. Wrapping up"
         else:
@@ -119,15 +120,15 @@ def alias_MCMC_lda (corpus, no_topic, no_interative = 25, traces = True, alpha =
         if traces:
             print (message)
                                       
-    result_text = [normalize(text) for text in topic_in_document]
     summary = {"Number of Topic": no_topic, "Number of iteration": no_interative, 
                "Numer of articles": len(corpus),"Number of unique words": len(unique_word)}
+    result_text = [normalize(text) for text in topic_in_document]
+    
    
     result_topic = [word_dist_per_topic(word_topic_corpus, topic_in_corpus, topic_index) for topic_index in range(no_topic)]
-    result = [summary, result_text, result_topic]
+    result = [summary,result_text, result_topic]
     
-    return (result) 
-
+    return (result)
 
 def plot_topic (LDA_object):
     for i, topic in enumerate (LDA_object[2]):
