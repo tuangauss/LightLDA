@@ -27,6 +27,10 @@ Information on how to install these packages can be found only. I highly recomme
 conda install pandas
 ```
 
+### Dataset:
+
+The example uses the dataset from the Associated Press (AP) - which contains 2,246 articles and 10,473 words
+
 ## Authors
 
 * **Tuan Nguyen Doan** - *Initial work* - [tuangauss](https://github.com/tuangauss)
